@@ -9,4 +9,5 @@ class User(AbstractUser):
     password = None
     bio = models.TextField(null=True, blank=True)
     role = models.CharField(max_length=150, null=True, blank=True)
+    confirmation_code = models.CharField(max_length=150, blank=True)
 
