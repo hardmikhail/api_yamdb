@@ -122,5 +122,5 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 AUTH_USER_MODEL = 'api.User'
 
 SIMPLE_JWT  = {
-    'TOKEN_LIFETIME_HOURS': 5,
+    'TOKEN_LIFETIME_HOURS': 1,
 }
