@@ -63,7 +63,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.AllowAny'
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'api.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }
 
@@ -122,5 +122,5 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 AUTH_USER_MODEL = 'api.User'
 
 SIMPLE_JWT  = {
-    'TOKEN_LIFETIME_HOURS': 1,
+    'TOKEN_LIFETIME_HOURS': 24,
 }
