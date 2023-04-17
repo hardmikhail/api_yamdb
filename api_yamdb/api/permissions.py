@@ -1,4 +1,6 @@
 from rest_framework import permissions
+
+
 class IsUser(permissions.IsAuthenticated):
     pass
 

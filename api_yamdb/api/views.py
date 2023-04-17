@@ -2,16 +2,18 @@ from rest_framework import mixins, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import IsAuthenticated
+# from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from rest_framework.serializers import ValidationError
 
-from .serializers import UserSignUpSerializer, ObtainTokenSerializer, UsersSerializer
+from .serializers import (UserSignUpSerializer,
+                          ObtainTokenSerializer,
+                          UsersSerializer)
 from review.models import User
-from .permissions import IsAdmin
+# from .permissions import IsAdmin
 from .authentication import get_tokens_for_user
 
 
@@ -42,7 +44,11 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
             fail_silently=False,
         )
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+            headers=headers
+        )
 
 
 class UsersViewSet(viewsets.ModelViewSet):
@@ -56,9 +62,9 @@ class UsersMeViewSet(APIView):
     # permission_classes = (,)
     serializer_class = UsersSerializer
     # lookup_field = 'username'
+
     def get(self, request, *args, **kwargs):
         return Response(request.data)
-
 
 
 class ObtainTokenView(APIView):
@@ -73,13 +79,16 @@ class ObtainTokenView(APIView):
         confirmation_code = serializer.validated_data.get('confirmation_code')
         user = User.objects.filter(username=username).first()
         if not User.objects.filter(username=username).exists():
-            return Response({'message': 'Invalid username'}, status=status.HTTP_404_NOT_FOUND)
-        if user is None or not default_token_generator.check_token(user, confirmation_code):
-            return Response({'message': 'Invalid credentials'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'message': 'Invalid username'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        if not default_token_generator.check_token(user, confirmation_code):
+            return Response(
+                {'message': 'Invalid credentials'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         jwt_token = get_tokens_for_user(user)
 
         return Response(jwt_token)
-
-
-    

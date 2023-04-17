@@ -122,6 +122,6 @@ EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 AUTH_USER_MODEL = 'review.User'
 
-SIMPLE_JWT  = {
+SIMPLE_JWT = {
     'TOKEN_LIFETIME_HOURS': 24,
 }
