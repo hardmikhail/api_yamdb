@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
-from .models import User
+from review.models import User
 from .validators import CorrectUsernameValidator
 
 

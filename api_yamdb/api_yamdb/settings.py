@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api.apps.ApiConfig',
+    'review.apps.ReviewConfig',
     'rest_framework',
     'rest_framework_simplejwt',
 ]
@@ -119,7 +120,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-AUTH_USER_MODEL = 'api.User'
+AUTH_USER_MODEL = 'review.User'
 
 SIMPLE_JWT  = {
     'TOKEN_LIFETIME_HOURS': 24,

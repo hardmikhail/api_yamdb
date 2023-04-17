@@ -7,7 +7,7 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
 
 from .serializers import UserSignUpSerializer, ObtainTokenSerializer, UsersSerializer
-from .models import User
+from review.models import User
 from .permissions import IsAdmin
 from .authentication import get_tokens_for_user
 
