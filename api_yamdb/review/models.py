@@ -4,12 +4,12 @@ from django.contrib.auth.models import AbstractUser
 from api.permissions import IsUser, IsModerator, IsAdmin
 
 class User(AbstractUser):
-    email = models.EmailField(max_length=254, unique=True)
-    bio = models.TextField(null=True, blank=True)
     ROLE_CHOICES = [
-        (IsUser, 'user'),
-        (IsModerator, 'moderator'),
+        ('user', IsUser),
+        ('moderator', IsModerator),
         ('admin', IsAdmin)
     ]
+    email = models.EmailField(max_length=254, unique=True)
+    bio = models.TextField(null=True, blank=True)
     role = models.CharField(max_length=150, choices=ROLE_CHOICES, null=True, blank=True)
     password = None

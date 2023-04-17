@@ -5,6 +5,9 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
+from django.core.mail import send_mail
+from django.db import IntegrityError
+from rest_framework.serializers import ValidationError
 
 from .serializers import UserSignUpSerializer, ObtainTokenSerializer, UsersSerializer
 from review.models import User
@@ -19,7 +22,25 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
+        username = serializer.data.get('username')
+        email = serializer.data.get('email')
+        if username == 'me':
+            raise ValidationError({'username': 'Имя me запрещено!'})
+        try:
+            user, created = User.objects.get_or_create(
+                **serializer.validated_data
+            )
+            print(created)
+        except IntegrityError:
+            raise ValidationError({'field': 'Имя запрещено!'})
+        confirmation_code = default_token_generator.make_token(user=user)
+        send_mail(
+            subject=username,
+            message=confirmation_code,
+            from_email='webmaster@localhost',
+            recipient_list=[email],
+            fail_silently=False,
+        )
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
@@ -32,7 +53,6 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 
 class UsersMeViewSet(APIView):
-    # queryset = User.objects.all() 
     # permission_classes = (,)
     serializer_class = UsersSerializer
     # lookup_field = 'username'
