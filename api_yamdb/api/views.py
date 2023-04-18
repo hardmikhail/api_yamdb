@@ -60,11 +60,16 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class UsersMeViewSet(APIView):
     # permission_classes = (,)
+    # user = self.request.user
+    # queryset = User.objects.all()
     serializer_class = UsersSerializer
     # lookup_field = 'username'
 
     def get(self, request, *args, **kwargs):
-        return Response(request.data)
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        return Response(serializer.data)
 
 
 class ObtainTokenView(APIView):
