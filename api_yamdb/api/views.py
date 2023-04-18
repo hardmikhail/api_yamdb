@@ -34,7 +34,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
                 **serializer.validated_data
             )
         except IntegrityError:
-            raise ValidationError({'field': 'Имя запрещено!'})
+            raise ValidationError({'message': 'Данные уже используются!'})
         confirmation_code = default_token_generator.make_token(user=user)
         send_mail(
             subject=username,
