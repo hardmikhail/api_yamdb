@@ -2,7 +2,7 @@ from rest_framework import mixins, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-# from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
 from django.core.mail import send_mail
@@ -20,6 +20,7 @@ from .authentication import get_tokens_for_user
 class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSignUpSerializer
+    permission_classes = (AllowAny,)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -68,7 +69,7 @@ class UsersMeViewSet(APIView):
 
 
 class ObtainTokenView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = (permissions.AllowAny,)
     serializer_class = ObtainTokenSerializer
 
     def post(self, request, *args, **kwargs):
