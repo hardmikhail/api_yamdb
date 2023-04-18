@@ -33,7 +33,6 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
             user, created = User.objects.get_or_create(
                 **serializer.validated_data
             )
-            print(created)
         except IntegrityError:
             raise ValidationError({'field': 'Имя запрещено!'})
         confirmation_code = default_token_generator.make_token(user=user)
@@ -54,6 +53,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
+    permission_classes = (AllowAny,)
     # permission_classes = (IsAdmin,) #админ
     serializer_class = UsersSerializer
     lookup_field = 'username'
