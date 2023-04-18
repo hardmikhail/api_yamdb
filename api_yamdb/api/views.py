@@ -2,19 +2,20 @@ from rest_framework import mixins, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from django.contrib.auth.tokens import default_token_generator
 from rest_framework import viewsets
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from rest_framework.serializers import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework.filters import SearchFilter
 
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
                           UsersSerializer)
 from review.models import User
-# from .permissions import IsAdmin
+from .permissions import IsAdmin, IsUser
 from .authentication import get_tokens_for_user
 
 
@@ -54,13 +55,15 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    # permission_classes = (IsAdmin,) #админ
+    permission_classes = (IsAdmin,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
+    filter_backends = [SearchFilter]
+    search_fields = ['username',]
 
 
 class UsersMeViewSet(APIView):
-    # permission_classes = (,)
+    permission_classes = (IsAuthenticated,)
     serializer_class = UsersSerializer
 
     def get(self, request, *args, **kwargs):
