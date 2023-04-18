@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from review.models import User
+from review.models import User, ROLE_CHOICES
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):
@@ -9,6 +9,7 @@ class UserSignUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('email', 'username')
+        # fields = ('__all__')
         model = User
 
 
@@ -18,6 +19,7 @@ class ObtainTokenSerializer(serializers.Serializer):
 
 
 class UsersSerializer(serializers.ModelSerializer):
+    # role = serializers.ChoiceField(choices=)
     class Meta:
         fields = (
             'username',

@@ -5,7 +5,7 @@ class IsUser(permissions.IsAuthenticated):
     pass
 
 
-class IsModerator():
+class IsModerator(IsUser):
     pass
 
 

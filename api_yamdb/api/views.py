@@ -13,7 +13,7 @@ from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
                           UsersSerializer)
 from review.models import User
-# from .permissions import IsAdmin
+from .permissions import IsAdmin
 from .authentication import get_tokens_for_user
 
 
@@ -34,7 +34,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
                 **serializer.validated_data
             )
         except IntegrityError:
-            raise ValidationError({'field': 'Имя запрещено!'})
+            raise ValidationError({'message': 'Данные уже используются!'})
         confirmation_code = default_token_generator.make_token(user=user)
         send_mail(
             subject=username,
@@ -53,7 +53,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    # permission_classes = (IsAdmin,) #админ
+    permission_classes = (IsAdmin,) #админ
     serializer_class = UsersSerializer
     lookup_field = 'username'
 
