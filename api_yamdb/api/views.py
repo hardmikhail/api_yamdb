@@ -53,7 +53,6 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = (AllowAny,)
     # permission_classes = (IsAdmin,) #админ
     serializer_class = UsersSerializer
     lookup_field = 'username'
