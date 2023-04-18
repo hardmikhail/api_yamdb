@@ -8,6 +8,7 @@ from rest_framework import viewsets
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from rest_framework.serializers import ValidationError
+from django.shortcuts import get_object_or_404
 
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
@@ -60,15 +61,18 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class UsersMeViewSet(APIView):
     # permission_classes = (,)
-    # user = self.request.user
-    # queryset = User.objects.all()
     serializer_class = UsersSerializer
-    # lookup_field = 'username'
 
     def get(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = self.serializer_class(user)
+        return Response(serializer.data)
+    
+    def patch(self, request, *args, **kwargs):
+        user = get_object_or_404(User, username=request.user.username)
+        serializer = self.serializer_class(user, data=request.data)
         serializer.is_valid(raise_exception=True)
-        
+        serializer.save()
         return Response(serializer.data)
 
 

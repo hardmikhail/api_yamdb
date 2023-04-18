@@ -6,9 +6,9 @@ from api.permissions import IsUser, IsModerator, IsAdmin
 
 class User(AbstractUser):
     ROLE_CHOICES = [
-        ('user', IsUser),
-        ('moderator', IsModerator),
-        ('admin', IsAdmin)
+        ('user', 'user'),
+        ('moderator', 'moderator'),
+        ('admin', 'admin')
     ]
     email = models.EmailField(max_length=254, unique=True)
     bio = models.TextField(null=True, blank=True)
@@ -16,6 +16,7 @@ class User(AbstractUser):
         max_length=150,
         choices=ROLE_CHOICES,
         null=True,
-        blank=True
+        blank=True,
+        default='user'
     )
     password = None
