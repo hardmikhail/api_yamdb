@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
-from api.permissions import IsUser, IsModerator, IsAdmin
-
 
 class User(AbstractUser):
     ROLE_CHOICES = [

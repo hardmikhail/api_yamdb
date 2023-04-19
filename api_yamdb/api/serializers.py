@@ -28,3 +28,15 @@ class UsersSerializer(serializers.ModelSerializer):
             'role'
         )
         model = User
+
+
+class UsersMeSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio'
+        )
+        model = User

@@ -7,10 +7,7 @@ class IsUser(permissions.IsAuthenticated):
         return bool(request.user and request.user.is_authenticated
                     or request.method in permissions.SAFE_METHODS)
 
-    # def has_object_permission(self, request, view, obj):
-    #     return bool(request.user == obj.user
-    #                 or request.method in permissions.SAFE_METHODS)
-    pass
+
 class IsModerator(IsUser):
     pass
 
@@ -18,6 +15,7 @@ class IsModerator(IsUser):
 class IsAdmin(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return bool(request.user and request.user.is_authenticated and request.user.role == 'admin'
+        return bool(request.user
+                    and request.user.is_authenticated
+                    and request.user.role == 'admin'
                     or request.user.is_superuser)
-    pass
