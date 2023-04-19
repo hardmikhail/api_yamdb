@@ -3,19 +3,19 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import SearchFilter
+from rest_framework.serializers import ValidationError
 from django.contrib.auth.tokens import default_token_generator
-from rest_framework import viewsets
 from django.core.mail import send_mail
 from django.db import IntegrityError
-from rest_framework.serializers import ValidationError
 from django.shortcuts import get_object_or_404
-from rest_framework.filters import SearchFilter
 
+from review.models import User
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
-                          UsersSerializer)
-from review.models import User
-from .permissions import IsAdmin, IsUser
+                          UsersSerializer,
+                          UsersMeSerializer)
+from .permissions import IsAdmin
 from .authentication import get_tokens_for_user
 
 
@@ -53,27 +53,36 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
         )
 
 
-class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+class UsersViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    queryset = User.objects.get_queryset().order_by('id')
     permission_classes = (IsAdmin,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
     filter_backends = [SearchFilter]
     search_fields = ['username',]
 
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return self.http_method_not_allowed(request, *args, **kwargs)
+        return super().update(request, *args, **kwargs)
+
 
 class UsersMeViewSet(APIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = UsersSerializer
 
     def get(self, request, *args, **kwargs):
         user = get_object_or_404(User, username=request.user.username)
-        serializer = self.serializer_class(user)
+        serializer = UsersSerializer(user)
         return Response(serializer.data)
-    
+
     def patch(self, request, *args, **kwargs):
         user = get_object_or_404(User, username=request.user.username)
-        serializer = self.serializer_class(user, data=request.data)
+        serializer = UsersMeSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
