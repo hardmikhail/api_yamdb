@@ -35,8 +35,10 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
             user, created = User.objects.get_or_create(
                 **serializer.validated_data
             )
-        except IntegrityError:
-            raise ValidationError({'message': 'Данные уже используются!'})
+        except IntegrityError as e:
+            if 'username' in str(e):
+                raise ValidationError({'username': 'Имя уже используется!'})
+            raise ValidationError({'email': 'E-mail уже используется!'})
         confirmation_code = default_token_generator.make_token(user=user)
         send_mail(
             subject=username,
