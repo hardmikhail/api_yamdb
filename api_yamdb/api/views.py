@@ -103,12 +103,12 @@ class ObtainTokenView(APIView):
         user = User.objects.filter(username=username).first()
         if not User.objects.filter(username=username).exists():
             return Response(
-                {'message': 'Invalid username'},
+                {'message': 'Пользователь не найден!'},
                 status=status.HTTP_404_NOT_FOUND
             )
         if not default_token_generator.check_token(user, confirmation_code):
             return Response(
-                {'message': 'Invalid credentials'},
+                {'message': 'Неверные данные!'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
