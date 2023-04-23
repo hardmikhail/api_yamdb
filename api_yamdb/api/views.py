@@ -1,5 +1,4 @@
 from rest_framework import mixins, filters, viewsets
-from django_filters.rest_framework import DjangoFilterBackend
 
 from .serializers import (
     CategoriesSerializer,
@@ -9,6 +8,7 @@ from .serializers import (
 )
 from review.models import Categories, Genre, Title
 from .filters import TitleFilter
+from .permissions import IsAdminOrReadOnly
 
 class CategoriesViewSet(
     mixins.CreateModelMixin,
@@ -20,9 +20,10 @@ class CategoriesViewSet(
 
     queryset = Categories.objects.all()
     serializer_class = CategoriesSerializer
-    # permission_classes = (ReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class GenreViewSet(
@@ -35,9 +36,10 @@ class GenreViewSet(
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    # permission_classes = (ReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -45,13 +47,12 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
-    # permission_classes = (ReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
+    permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitleFilter
     
     def get_serializer_class(self):
         """Определяет какой сериализатор будет использоваться
         для разных типов запроса."""
-        if self.request.method == 'GET':
+        if self.action in ('list', 'retrieve'):
             return TitleGETSerializer
         return TitleSerializer

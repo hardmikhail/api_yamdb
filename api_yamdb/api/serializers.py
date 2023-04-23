@@ -21,25 +21,16 @@ class GenreSerializer(serializers.ModelSerializer):
 
 class TitleGETSerializer(serializers.ModelSerializer):
     """Сериализатор объектов класса Title при GET запросах."""
-
     genre = GenreSerializer(many=True, read_only=True)
     category = CategoriesSerializer(read_only=True)
 
     class Meta:
         model = Title
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'category'
-        )
+        fields = '__all__'
 
 
 class TitleSerializer(serializers.ModelSerializer):
     """Сериализатор объектов класса Title при небезопасных запросах."""
-
     genre = serializers.SlugRelatedField(
         slug_field='slug',
         queryset=Genre.objects.all(),
@@ -52,10 +43,4 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = (
-            'name', 'year', 'description', 'genre', 'category')
-
-    def title_serializer(self, title):
-        """Определяет какой сериализатор будет использоваться для чтения."""
-        serializer = TitleGETSerializer(title)
-        return serializer.data
+        fields = '__all__'
