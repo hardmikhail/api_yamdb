@@ -1,10 +1,20 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import SignUpViewSet, ObtainTokenView, UsersViewSet, UsersMeViewSet
+from .views import (
+    SignUpViewSet,
+    ObtainTokenView,
+    UsersViewSet,
+    UsersMeViewSet,
+    CategoriesViewSet,
+    GenreViewSet,
+    TitleViewSet)
 
 router = DefaultRouter()
 router.register(r'users', UsersViewSet)
+router.register('categories', CategoriesViewSet, basename='categories')
+router.register('genres', GenreViewSet, basename='genres')
+router.register('titles', TitleViewSet, basename='titles')
 urlpatterns = [
     path(
         'auth/signup/',
@@ -16,3 +26,4 @@ urlpatterns = [
     path('', include(router.urls)),
     # path('users/<username>/',UsersViewSet.as_view({'get': 'retrieve'}))
 ]
+

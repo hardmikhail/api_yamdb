@@ -1,4 +1,4 @@
-from rest_framework import mixins, permissions, status
+from rest_framework import mixins, permissions, status, filters, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -10,13 +10,18 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from review.models import User
+from review.models import User, Categories, Genre, Title
+from .permissions import IsAdmin, IsAdminOrReadOnly
+from .authentication import get_tokens_for_user
+from .filters import TitleFilter
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
                           UsersSerializer,
-                          UsersMeSerializer)
-from .permissions import IsAdmin
-from .authentication import get_tokens_for_user
+                          UsersMeSerializer,
+                          CategoriesSerializer,
+                          GenreSerializer,
+                          TitleGETSerializer,
+                          TitleSerializer)
 
 
 class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
@@ -115,3 +120,50 @@ class ObtainTokenView(APIView):
         jwt_token = get_tokens_for_user(user)
 
         return Response(jwt_token)
+
+class CategoriesViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
+    """Вьюсет для создания обьектов класса Category."""
+
+    queryset = Categories.objects.all()
+    serializer_class = CategoriesSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+
+class GenreViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
+    """Вьюсет для создания обьектов класса Genre."""
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name',)
+    lookup_field = 'slug'
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для создания обьектов класса Title."""
+
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    filterset_class = TitleFilter
+    
+    def get_serializer_class(self):
+        """Определяет какой сериализатор будет использоваться
+        для разных типов запроса."""
+        if self.action in ('list', 'retrieve'):
+            return TitleGETSerializer
+        return TitleSerializer

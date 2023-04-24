@@ -61,15 +61,18 @@ WSGI_APPLICATION = 'api_yamdb.wsgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'api.permissions.IsUser'
-        'rest_framework.permissions.AllowAny'
-    ],
+        'rest_framework.permissions.IsAuthenticated'
+        ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS':
         'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
+    'DEFAULT_FILTER_BACKENDS': [
+        'rest_framework.filters.SearchFilter',
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
 }
 
 # Database
@@ -125,7 +128,3 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
 AUTH_USER_MODEL = 'review.User'
-
-# SIMPLE_JWT = {
-#     'TOKEN_LIFETIME_HOURS': 24,
-# }
