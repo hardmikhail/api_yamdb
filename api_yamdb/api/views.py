@@ -10,8 +10,8 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from reviews.models import User, Categories, Genre, Title
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from reviews.models import User, Categories, Genre, Title, Review
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsUser
 from .authentication import get_tokens_for_user
 from .filters import TitleFilter
 from .serializers import (UserSignUpSerializer,
@@ -21,7 +21,8 @@ from .serializers import (UserSignUpSerializer,
                           CategoriesSerializer,
                           GenreSerializer,
                           TitleGETSerializer,
-                          TitleSerializer)
+                          TitleSerializer,
+                          ReviewSerializer)
 
 
 class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
@@ -174,9 +175,21 @@ class ReviewsViewSet(mixins.CreateModelMixin,
                    mixins.DestroyModelMixin,
                    mixins.ListModelMixin,
                    GenericViewSet):
-    # queryset = Reviews.objects.all()
-    # serializer_class = ReviewsSerializer
-    # permission_classes = (,)
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsUser,)
+
+    def create(self, request, *args, **kwargs):
+        if Review.objects.filter(author=self.request.user).exists():
+            return Response(
+                    {'message': 'Оценку можно поставить только один раз!'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        if self.request.user:
+            serializer.save(author=self.request.user)
 
     def update(self, request, args, kwargs):
         if request.method == 'PUT':

@@ -158,8 +158,11 @@ class GenreTitle(models.Model):
     def __str__(self):
         return f'{self.title} принадлежит жанру {self.genre}'
 
-class Reviews(models.Model):
+class Review(models.Model):
     text = models.CharField(max_length=1000)
-    author = models.IntegerField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Отзывы',)
     score = models.IntegerField()
     pub_date = models.DateTimeField(auto_now_add=True)

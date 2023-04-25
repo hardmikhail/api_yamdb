@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from reviews.models import User, Categories, Genre, Title, Reviews
+from reviews.models import User, Categories, Genre, Title, Review
 
 
 class UserSignUpSerializer(serializers.ModelSerializer):
@@ -85,10 +85,13 @@ class TitleSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class ReviewsSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True, max_length=1000)
     score = serializers.IntegerField(required=True)
+    # author = serializers.RelatedField(queryset=Reviews.objects.all())
 
     class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
-        model = Reviews
+        # fields = ('id', 'text', 'author', 'score', 'pub_date')
+        fields = ('id', 'text', 'score', 'pub_date')
+        read_only_fields = ('author',)
+        model = Review
