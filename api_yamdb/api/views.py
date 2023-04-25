@@ -167,3 +167,18 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ('list', 'retrieve'):
             return TitleGETSerializer
         return TitleSerializer
+
+class ReviewsViewSet(mixins.CreateModelMixin,
+                   mixins.RetrieveModelMixin,
+                   mixins.UpdateModelMixin,
+                   mixins.DestroyModelMixin,
+                   mixins.ListModelMixin,
+                   GenericViewSet):
+    # queryset = Reviews.objects.all()
+    # serializer_class = ReviewsSerializer
+    # permission_classes = (,)
+
+    def update(self, request, args, kwargs):
+        if request.method == 'PUT':
+            return self.http_method_not_allowed(request, args, kwargs)
+        return super().update(request, args, kwargs)
