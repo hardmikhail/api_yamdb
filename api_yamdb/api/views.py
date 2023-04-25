@@ -10,7 +10,7 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from review.models import User, Categories, Genre, Title
+from reviews.models import User, Categories, Genre, Title
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .authentication import get_tokens_for_user
 from .filters import TitleFilter
