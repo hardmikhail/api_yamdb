@@ -8,13 +8,15 @@ from .views import (
     UsersMeViewSet,
     CategoriesViewSet,
     GenreViewSet,
-    TitleViewSet)
+    TitleViewSet,
+    ReviewsViewSet)
 
 router = DefaultRouter()
 router.register(r'users', UsersViewSet)
 router.register('categories', CategoriesViewSet, basename='categories')
 router.register('genres', GenreViewSet, basename='genres')
 router.register('titles', TitleViewSet, basename='titles')
+router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewsViewSet, basename='reviews')
 urlpatterns = [
     path(
         'auth/signup/',
@@ -24,6 +26,5 @@ urlpatterns = [
     path('auth/token/', ObtainTokenView.as_view()),
     path('users/me/', UsersMeViewSet.as_view()),
     path('', include(router.urls)),
-    # path('users/<username>/',UsersViewSet.as_view({'get': 'retrieve'}))
 ]
 
