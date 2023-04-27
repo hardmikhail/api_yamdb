@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
+
 class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
@@ -163,6 +164,28 @@ class Review(models.Model):
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        verbose_name='Отзывы',)
-    score = models.IntegerField()
+        verbose_name='Автор')
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        verbose_name='Произведение',
+        related_name='reviews'
+    )
+    score = models.IntegerField(
+        validators=[
+            MinValueValidator(
+                1,
+                message='Оценка не может быть меньше 1.'
+            ),
+            MaxValueValidator(
+                10,
+                message='Оценка не может быть больше 10.'
+            )
+        ],
+    )
     pub_date = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['author', 'title'], name='unique_review')
+        ]

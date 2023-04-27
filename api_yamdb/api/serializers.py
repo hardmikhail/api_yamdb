@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework import validators
 
 from reviews.models import User, Categories, Genre, Title, Review
 
@@ -88,10 +89,32 @@ class TitleSerializer(serializers.ModelSerializer):
 class ReviewSerializer(serializers.ModelSerializer):
     text = serializers.CharField(required=True, max_length=1000)
     score = serializers.IntegerField(required=True)
-    # author = serializers.RelatedField(queryset=Reviews.objects.all())
+    author = serializers.SlugRelatedField(
+        read_only=True, slug_field='username'
+    )
 
     class Meta:
-        # fields = ('id', 'text', 'author', 'score', 'pub_date')
-        fields = ('id', 'text', 'score', 'pub_date')
-        read_only_fields = ('author',)
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        # fields = ('id', 'text', 'score', 'pub_date')
+        # read_only_fields = ('author',)
         model = Review
+
+class ReviewGETSerializer(serializers.ModelSerializer):
+    text = serializers.CharField(required=True, max_length=1000)
+    score = serializers.IntegerField(required=True)
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='username'
+    )
+
+    class Meta:
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        model = Review
+    
+    # def validate(self, data):
+    #     # Проверяем, что пользователь создает отзыв только один раз
+    #     title = data.get('title')
+    #     author = self.request.user
+    #     existing_reviews = Review.objects.filter(title=title, author=author)
+    #     if existing_reviews.exists():
+    #         raise serializers.ValidationError('Only one review is allowed per title.')

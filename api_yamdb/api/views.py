@@ -2,7 +2,7 @@ from rest_framework import mixins, permissions, status, filters, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.filters import SearchFilter
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.tokens import default_token_generator
@@ -11,7 +11,7 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
 from reviews.models import User, Categories, Genre, Title, Review
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsUser
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsUser, IsAuthor, IsModerator
 from .authentication import get_tokens_for_user
 from .filters import TitleFilter
 from .serializers import (UserSignUpSerializer,
@@ -22,7 +22,8 @@ from .serializers import (UserSignUpSerializer,
                           GenreSerializer,
                           TitleGETSerializer,
                           TitleSerializer,
-                          ReviewSerializer)
+                          ReviewSerializer,
+                          ReviewGETSerializer)
 
 
 class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
@@ -61,12 +62,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
         )
 
 
-class UsersViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   GenericViewSet):
+class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.get_queryset().order_by('id')
     permission_classes = (IsAdmin,)
     serializer_class = UsersSerializer
@@ -169,29 +165,39 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleGETSerializer
         return TitleSerializer
 
-class ReviewsViewSet(mixins.CreateModelMixin,
-                   mixins.RetrieveModelMixin,
-                   mixins.UpdateModelMixin,
-                   mixins.DestroyModelMixin,
-                   mixins.ListModelMixin,
-                   GenericViewSet):
+class ReviewsViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsUser,)
+    permission_classes = (IsAuthenticatedOrReadOnly|IsModerator|IsAdmin|IsAuthor,)
 
-    def create(self, request, *args, **kwargs):
-        if Review.objects.filter(author=self.request.user).exists():
-            return Response(
-                    {'message': 'Оценку можно поставить только один раз!'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-        return super().create(request, *args, **kwargs)
+    def get_queryset(self):
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        Review.objects.filter(title=title)
+        return title.reviews.all()
+    
 
     def perform_create(self, serializer):
-        if self.request.user:
-            serializer.save(author=self.request.user)
+        if Review.objects.filter(
+            author=self.request.user,
+            title=Title.objects.get(pk=self.kwargs.get('title_id'))
+        ).exists():
+            raise ValidationError(
+                {'message': 'Оценку можно поставить только один раз!'},
+                status.HTTP_400_BAD_REQUEST
+            )
+        title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
+        serializer.save(author=self.request.user, title=title)
+    
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return ReviewGETSerializer
+        return ReviewSerializer
 
-    def update(self, request, args, kwargs):
-        if request.method == 'PUT':
-            return self.http_method_not_allowed(request, args, kwargs)
-        return super().update(request, args, kwargs)
+    # def get_permissions(self):
+    #     if self.request.method == 'PATCH':
+    #     # #     return (IsAuthor,)
+    #     # if self.action == 'update':
+    #         permission_classes = [IsAuthor]
+    #     else:
+    #         permission_classes = [IsAdminOrReadOnly]
+    #     return permission_classes
