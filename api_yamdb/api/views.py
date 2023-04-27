@@ -2,7 +2,7 @@ from rest_framework import mixins, permissions, status, filters, viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.filters import SearchFilter
 from rest_framework.serializers import ValidationError
 from django.contrib.auth.tokens import default_token_generator
@@ -11,9 +11,14 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
 from reviews.models import User, Categories, Genre, Title, Review
-from .permissions import IsAdmin, IsAdminOrReadOnly, IsUser, IsAuthor, IsModerator
 from .authentication import get_tokens_for_user
 from .filters import TitleFilter
+from .permissions import (IsAdmin,
+                          IsAdminOrReadOnly,
+                          IsAuthor,
+                          IsModerator,
+                          ReadOnly,
+                          IsAdminUser)
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
                           UsersSerializer,
@@ -22,8 +27,8 @@ from .serializers import (UserSignUpSerializer,
                           GenreSerializer,
                           TitleGETSerializer,
                           TitleSerializer,
-                          ReviewSerializer,
-                          ReviewGETSerializer)
+                          ReviewSerializer
+                          )
 
 
 class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
@@ -64,7 +69,7 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 class UsersViewSet(viewsets.ModelViewSet):
     queryset = User.objects.get_queryset().order_by('id')
-    permission_classes = (IsAdmin,)
+    permission_classes = (IsAdminUser,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
     filter_backends = [SearchFilter]
@@ -118,12 +123,11 @@ class ObtainTokenView(APIView):
 
         return Response(jwt_token)
 
-class CategoriesViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-    ):
+
+class CategoriesViewSet(mixins.CreateModelMixin,
+                        mixins.ListModelMixin,
+                        mixins.DestroyModelMixin,
+                        viewsets.GenericViewSet):
     """Вьюсет для создания обьектов класса Category."""
 
     queryset = Categories.objects.all()
@@ -134,12 +138,10 @@ class CategoriesViewSet(
     lookup_field = 'slug'
 
 
-class GenreViewSet(
-    mixins.CreateModelMixin,
-    mixins.ListModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet
-    ):
+class GenreViewSet(mixins.CreateModelMixin,
+                   mixins.ListModelMixin,
+                   mixins.DestroyModelMixin,
+                   viewsets.GenericViewSet):
     """Вьюсет для создания обьектов класса Genre."""
 
     queryset = Genre.objects.all()
@@ -157,7 +159,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     filterset_class = TitleFilter
-    
+
     def get_serializer_class(self):
         """Определяет какой сериализатор будет использоваться
         для разных типов запроса."""
@@ -165,21 +167,31 @@ class TitleViewSet(viewsets.ModelViewSet):
             return TitleGETSerializer
         return TitleSerializer
 
+
 class ReviewsViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedOrReadOnly|IsModerator|IsAdmin|IsAuthor,)
+    permission_classes = (ReadOnly | IsAuthor | IsAdmin | IsModerator,)
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         Review.objects.filter(title=title)
         return title.reviews.all()
-    
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers)
 
     def perform_create(self, serializer):
         if Review.objects.filter(
-            author=self.request.user,
-            title=Title.objects.get(pk=self.kwargs.get('title_id'))
+            author=User.objects.get(id=self.request.user.id),
+            title=get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         ).exists():
             raise ValidationError(
                 {'message': 'Оценку можно поставить только один раз!'},
@@ -187,17 +199,3 @@ class ReviewsViewSet(viewsets.ModelViewSet):
             )
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
-    
-    def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return ReviewGETSerializer
-        return ReviewSerializer
-
-    # def get_permissions(self):
-    #     if self.request.method == 'PATCH':
-    #     # #     return (IsAuthor,)
-    #     # if self.action == 'update':
-    #         permission_classes = [IsAuthor]
-    #     else:
-    #         permission_classes = [IsAdminOrReadOnly]
-    #     return permission_classes

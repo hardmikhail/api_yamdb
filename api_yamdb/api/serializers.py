@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework import validators
 
 from reviews.models import User, Categories, Genre, Title, Review
 
@@ -63,10 +62,16 @@ class TitleGETSerializer(serializers.ModelSerializer):
     """Сериализатор объектов класса Title при GET запросах."""
     genre = GenreSerializer(many=True, read_only=True)
     category = CategoriesSerializer(read_only=True)
+    rating = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def get_rating(self, obj):
+        reviews = Review.objects.filter(title=obj.id)
+        if reviews.count():
+            return sum([review.score for review in reviews]) / reviews.count()
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -95,12 +100,17 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
-        # fields = ('id', 'text', 'score', 'pub_date')
-        # read_only_fields = ('author',)
         model = Review
 
+    def validate(self, data):
+        score = data.get('score')
+        if score < 1 or score > 10:
+            raise serializers.ValidationError({'score': 'Неверное значение'})
+        return (data)
+
+
 class ReviewGETSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=True, max_length=1000)
+    text = serializers.CharField(required=True)
     score = serializers.IntegerField(required=True)
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -110,11 +120,3 @@ class ReviewGETSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
-    
-    # def validate(self, data):
-    #     # Проверяем, что пользователь создает отзыв только один раз
-    #     title = data.get('title')
-    #     author = self.request.user
-    #     existing_reviews = Review.objects.filter(title=title, author=author)
-    #     if existing_reviews.exists():
-    #         raise serializers.ValidationError('Only one review is allowed per title.')

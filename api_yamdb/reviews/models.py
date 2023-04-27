@@ -1,9 +1,8 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core import validators
 from datetime import datetime
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
-
 
 
 class User(AbstractUser):
@@ -59,7 +58,7 @@ class Categories(models.Model):
         max_length=50,
         verbose_name='slug',
         unique=True,
-        validators=[RegexValidator(
+        validators=[validators.RegexValidator(
             regex=r'^[-a-zA-Z0-9_]+$',
             message='Слаг категории содержит недопустимый символ'
         )]
@@ -106,11 +105,11 @@ class Title(models.Model):
     year = models.IntegerField(
         verbose_name='год выпуска',
         validators=[
-            MinValueValidator(
+            validators.MinValueValidator(
                 0,
                 message='Значение года не может быть отрицательным'
             ),
-            MaxValueValidator(
+            validators.MaxValueValidator(
                 int(datetime.now().year),
                 message='Значение года не может быть больше текущего'
             )
@@ -143,6 +142,7 @@ class Title(models.Model):
     def __str__(self):
         return self.name
 
+
 class GenreTitle(models.Model):
 
     genre = models.ForeignKey(
@@ -159,6 +159,7 @@ class GenreTitle(models.Model):
     def __str__(self):
         return f'{self.title} принадлежит жанру {self.genre}'
 
+
 class Review(models.Model):
     text = models.CharField(max_length=1000)
     author = models.ForeignKey(
@@ -173,19 +174,23 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         validators=[
-            MinValueValidator(
+            validators.MinValueValidator(
                 1,
                 message='Оценка не может быть меньше 1.'
             ),
-            MaxValueValidator(
+            validators.MaxValueValidator(
                 10,
                 message='Оценка не может быть больше 10.'
             )
         ],
     )
     pub_date = models.DateTimeField(auto_now_add=True)
-    
+
     class Meta:
+        ordering = ('-id',)
         constraints = [
-            models.UniqueConstraint(fields=['author', 'title'], name='unique_review')
+            models.UniqueConstraint(
+                fields=['author', 'title'],
+                name='unique_review'
+            )
         ]
