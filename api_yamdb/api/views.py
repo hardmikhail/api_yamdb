@@ -27,7 +27,8 @@ from .serializers import (UserSignUpSerializer,
                           GenreSerializer,
                           TitleGETSerializer,
                           TitleSerializer,
-                          ReviewSerializer
+                          ReviewSerializer,
+                          CommentsSerializer
                           )
 
 
@@ -199,3 +200,22 @@ class ReviewsViewSet(viewsets.ModelViewSet):
             )
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
+
+
+class CommentsViewSet(viewsets.ModelViewSet):
+    """Представление комментариев."""
+
+    serializer_class = CommentsSerializer
+    permission_classes = (ReadOnly | IsAuthor | IsAdmin | IsModerator,)
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title_id)
+        serializer.save(author=self.request.user, review=review)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title_id)
+        return review.comments.all()

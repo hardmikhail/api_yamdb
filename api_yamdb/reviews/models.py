@@ -32,7 +32,7 @@ class User(AbstractUser):
         default=USER
     )
     bio = models.TextField(
-        verbose_name='О себе',
+        verbose_name='Биография',
         null=True,
         blank=True
     )
@@ -194,3 +194,34 @@ class Review(models.Model):
                 name='unique_review'
             )
         ]
+
+
+class Comments(models.Model):
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Автор комментария',
+        help_text='Пользователь, который оставил комментарий'
+    )
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments',
+        verbose_name='Отзыв',
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария',
+    )
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации комментария',
+    )
+
+    class Meta:
+        ordering = ('pub_date',)
+        verbose_name = 'Комментарий'
+        verbose_name_plural = 'Комментарии'
+
+    def __str__(self):
+        return self.text
