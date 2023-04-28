@@ -74,7 +74,7 @@ class UsersViewSet(viewsets.ModelViewSet):
     serializer_class = UsersSerializer
     lookup_field = 'username'
     filter_backends = [SearchFilter]
-    search_fields = ['username',]
+    search_fields = ('username',)
 
     def update(self, request, *args, **kwargs):
         if request.method == 'PUT':
