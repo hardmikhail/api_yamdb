@@ -36,7 +36,6 @@ class User(AbstractUser):
         null=True,
         blank=True
     )
-    password = None
 
     @property
     def is_moderator(self):
