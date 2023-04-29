@@ -1,4 +1,5 @@
-from rest_framework import serializers
+from rest_framework import serializers, status
+from django.shortcuts import get_object_or_404
 
 from reviews.models import Categories, Genre, Title, Review, Comments
 from user.models import User
@@ -11,6 +12,11 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('email', 'username')
         model = User
+    
+    def validate(self, data):
+        if data.get('username') == 'me':
+            raise serializers.ValidationError({'username': 'Имя me запрещено!'})
+        return (data)
 
 
 class ObtainTokenSerializer(serializers.Serializer):

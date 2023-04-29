@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
+from uuid import uuid4
 
 from reviews.models import Categories, Genre, Title, Review
 from user.models import User
@@ -40,16 +41,12 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
         serializer.is_valid(raise_exception=True)
         username = serializer.data.get('username')
         email = serializer.data.get('email')
-        if username == 'me':
-            raise ValidationError({'username': 'Имя me запрещено!'})
         try:
             user, created = User.objects.get_or_create(
                 **serializer.validated_data
             )
-        except IntegrityError as e:
-            if 'username' in str(e):
-                raise ValidationError({'username': 'Имя уже используется!'})
-            raise ValidationError({'email': 'E-mail уже используется!'})
+        except IntegrityError:
+            raise ValidationError({'message': 'Данные уже используются!'})
         confirmation_code = default_token_generator.make_token(user=user)
         send_mail(
             subject=username,
@@ -176,16 +173,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         Review.objects.filter(title=title)
         return title.reviews.all()
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED,
-            headers=headers)
 
     def perform_create(self, serializer):
         if Review.objects.filter(
