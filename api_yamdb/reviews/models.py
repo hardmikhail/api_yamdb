@@ -1,60 +1,20 @@
 from django.db import models
 from django.core import validators
 from datetime import datetime
-from django.contrib.auth.models import AbstractUser
-from django.contrib.auth.validators import UnicodeUsernameValidator
 
-
-class User(AbstractUser):
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
-    USER = 'user'
-    ROLES = [
-        (ADMIN, 'Administrator'),
-        (MODERATOR, 'Moderator'),
-        (USER, 'User'),
-    ]
-
-    email = models.EmailField(
-        verbose_name='Адрес электронной почты',
-        unique=True,
-    )
-    username = models.CharField(
-        verbose_name='Имя пользователя',
-        max_length=150,
-        validators=[UnicodeUsernameValidator()],
-        unique=True
-    )
-    role = models.CharField(
-        verbose_name='Роль',
-        max_length=50,
-        choices=ROLES,
-        default=USER
-    )
-    bio = models.TextField(
-        verbose_name='Биография',
-        null=True,
-        blank=True
-    )
-
-    @property
-    def is_moderator(self):
-        return self.role == self.MODERATOR
-
-    @property
-    def is_admin(self):
-        return self.role == self.ADMIN
+from api_yamdb.settings import TEXT_LENGHT, SLICE_TEXT
+from user.models import User
 
 
 class Categories(models.Model):
 
     name = models.CharField(
-        max_length=256,
+        max_length=TEXT_LENGHT,
         verbose_name='Название категории',
         db_index=True
     )
     slug = models.SlugField(
-        max_length=50,
+        max_length=TEXT_LENGHT,
         verbose_name='slug',
         unique=True,
         validators=[validators.RegexValidator(
@@ -69,13 +29,13 @@ class Categories(models.Model):
         ordering = ('name',)
 
     def __str__(self):
-        return self.name
+        return self.name[:SLICE_TEXT]
 
 
 class Genre(models.Model):
 
     name = models.CharField(
-        max_length=75,
+        max_length=TEXT_LENGHT,
         verbose_name='Название жанра',
         db_index=True
     )
@@ -97,7 +57,7 @@ class Genre(models.Model):
 class Title(models.Model):
 
     name = models.CharField(
-        max_length=256,
+        max_length=TEXT_LENGHT,
         verbose_name='Название произведения',
         db_index=True
     )
@@ -139,7 +99,7 @@ class Title(models.Model):
         ordering = ('-year', 'name')
 
     def __str__(self):
-        return self.name
+        return self.name[:SLICE_TEXT]
 
 
 class GenreTitle(models.Model):
@@ -223,4 +183,4 @@ class Comments(models.Model):
         verbose_name_plural = 'Комментарии'
 
     def __str__(self):
-        return self.text
+        return self.text[:SLICE_TEXT]

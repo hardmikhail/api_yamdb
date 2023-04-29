@@ -10,15 +10,13 @@ from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 
-from reviews.models import User, Categories, Genre, Title, Review
+from reviews.models import Categories, Genre, Title, Review
+from user.models import User
 from .authentication import get_tokens_for_user
 from .filters import TitleFilter
-from .permissions import (IsAdmin,
+from .permissions import (IsAdminModeratorAuthorOrReadOnly,
                           IsAdminOrReadOnly,
-                          IsAuthor,
-                          IsModerator,
-                          ReadOnly,
-                          IsAdminUser)
+                          AdminOnly)
 from .serializers import (UserSignUpSerializer,
                           ObtainTokenSerializer,
                           UsersSerializer,
@@ -69,8 +67,8 @@ class SignUpViewSet(mixins.CreateModelMixin, GenericViewSet):
 
 
 class UsersViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.get_queryset().order_by('id')
-    permission_classes = (IsAdminUser,)
+    queryset = User.objects.get_queryset()
+    permission_classes = (AdminOnly,)
     serializer_class = UsersSerializer
     lookup_field = 'username'
     filter_backends = [SearchFilter]
@@ -172,7 +170,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewsViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (ReadOnly | IsAuthor | IsAdmin | IsModerator,)
+    permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
 
     def get_queryset(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -206,7 +204,7 @@ class CommentsViewSet(viewsets.ModelViewSet):
     """Представление комментариев."""
 
     serializer_class = CommentsSerializer
-    permission_classes = (ReadOnly | IsAuthor | IsAdmin | IsModerator,)
+    permission_classes = (IsAdminModeratorAuthorOrReadOnly,)
 
     def perform_create(self, serializer):
         title_id = self.kwargs.get('title_id')

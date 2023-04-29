@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+TEXT_LENGHT = 50
+SLICE_TEXT = 15
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -22,8 +24,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'api.apps.ApiConfig',
     'reviews.apps.ReviewsConfig',
+    'user.apps.UserConfig',
+    'api.apps.ApiConfig',
     'rest_framework',
     'rest_framework_simplejwt',
 ]
@@ -127,4 +130,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 
-AUTH_USER_MODEL = 'reviews.User'
+AUTH_USER_MODEL = 'user.User'
