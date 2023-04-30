@@ -9,7 +9,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from uuid import uuid4
 
 from reviews.models import Categories, Genre, Title, Review
 from user.models import User
@@ -175,14 +174,6 @@ class ReviewsViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        if Review.objects.filter(
-            author=User.objects.get(id=self.request.user.id),
-            title=get_object_or_404(Title, pk=self.kwargs.get('title_id'))
-        ).exists():
-            raise ValidationError(
-                {'message': 'Оценку можно поставить только один раз!'},
-                status.HTTP_400_BAD_REQUEST
-            )
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         serializer.save(author=self.request.user, title=title)
 

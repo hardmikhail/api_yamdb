@@ -12,10 +12,12 @@ class UserSignUpSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('email', 'username')
         model = User
-    
+
     def validate(self, data):
         if data.get('username') == 'me':
-            raise serializers.ValidationError({'username': 'Имя me запрещено!'})
+            raise serializers.ValidationError(
+                {'username': 'Имя me запрещено!'}
+            )
         return (data)
 
 
@@ -121,20 +123,17 @@ class ReviewSerializer(serializers.ModelSerializer):
         score = data.get('score')
         if score < 1 or score > 10:
             raise serializers.ValidationError({'score': 'Неверное значение'})
-        return (data)
-
-
-class ReviewGETSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(required=True)
-    score = serializers.IntegerField(required=True)
-    author = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='username'
-    )
-
-    class Meta:
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
-        model = Review
+        if self.context['request'].method != 'POST':
+            return data
+        author = self.context['request'].user
+        title_id = self.context['view'].kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        if Review.objects.filter(author=author, title=title).exists():
+            raise serializers.ValidationError(
+                {'message': 'Оценку можно поставить только один раз!'},
+                status.HTTP_400_BAD_REQUEST
+            )
+        return data
 
 
 class CommentsSerializer(serializers.ModelSerializer):
