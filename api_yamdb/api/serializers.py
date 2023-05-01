@@ -1,5 +1,10 @@
 from rest_framework import serializers, status
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db import IntegrityError
+from rest_framework.response import Response
+
 
 from reviews.models import Categories, Genre, Title, Review, Comments
 from user.models import User
@@ -18,7 +23,27 @@ class UserSignUpSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'username': 'Имя me запрещено!'}
             )
-        return (data)
+        
+        return data
+
+    # def create(self, validated_data):
+    #     username = validated_data.get('username')
+    #     email = validated_data.get('email')
+    #     try:
+    #         user, created = User.objects.get_or_create(
+    #             **validated_data
+    #         )
+    #     except IntegrityError:
+    #         raise serializers.ValidationError({'message': 'Данные уже используются!'})
+    #     confirmation_code = default_token_generator.make_token(user=user)
+    #     send_mail(
+    #         subject=username,
+    #         message=confirmation_code,
+    #         from_email='webmaster@localhost',
+    #         recipient_list=[email],
+    #         fail_silently=False,
+    #     )
+    #     return user
 
 
 class ObtainTokenSerializer(serializers.Serializer):

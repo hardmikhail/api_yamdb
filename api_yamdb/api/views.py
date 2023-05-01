@@ -102,8 +102,8 @@ class ObtainTokenView(APIView):
 
         username = serializer.validated_data.get('username')
         confirmation_code = serializer.validated_data.get('confirmation_code')
-        user = User.objects.filter(username=username).first()
-        if not User.objects.filter(username=username).exists():
+        user = User.objects.filter(username=username)
+        if not user.exists():
             return Response(
                 {'message': 'Пользователь не найден!'},
                 status=status.HTTP_404_NOT_FOUND
